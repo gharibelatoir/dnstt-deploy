@@ -21,19 +21,19 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Checkout DNSTT Source
-        uses: actions/checkout@v4
-        with:
-          repository: google/dnstt # هذا السطر سيجلب الكود المصدري الأصلي مباشرة بدون مشاكل صلاحيات
-          path: source
+      - name: Download Source as Zip
+        run: |
+          # تحميل الكود كمجلد مضغوط لتجنب مشاكل الصلاحيات
+          curl -L https://github.com/google/dnstt/archive/refs/heads/master.zip -o source.zip
+          unzip source.zip
+          mv dnstt-master source
 
       - name: Build Binaries
         run: |
           cd source
           go mod download
-          # بناء العميل
+          # بناء العميل والسيرفر
           GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o "../dnstt-client-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-client
-          # بناء السيرفر
           GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o "../dnstt-server-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-server
 
       - name: Upload Results
