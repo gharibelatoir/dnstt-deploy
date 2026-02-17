@@ -21,16 +21,16 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Fetch and Prepare Source
-        run: |
-          # تحميل الكود المصدري من المستودع الرسمي مباشرة
-          git clone https://github.com/google/dnstt.git source
-          cd source
-          go mod download
-          
+      - name: Checkout DNSTT Source
+        uses: actions/checkout@v4
+        with:
+          repository: google/dnstt # هذا السطر سيجلب الكود المصدري الأصلي مباشرة بدون مشاكل صلاحيات
+          path: source
+
       - name: Build Binaries
         run: |
           cd source
+          go mod download
           # بناء العميل
           GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o "../dnstt-client-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-client
           # بناء السيرفر
