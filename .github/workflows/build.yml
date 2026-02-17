@@ -1,12 +1,13 @@
 name: Multi-Arch Build
 
 on:
-  workflow_dispatch: # لتشغيل البناء يدوياً بضغطة زر
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false # لكي لا يتوقف بناء الأندرويد إذا فشل الويندوز
       matrix:
         include:
           - {os: linux, arch: amd64}
@@ -15,8 +16,14 @@ jobs:
           - {os: windows, arch: amd64}
 
     steps:
+      - name: Checkout Your Repo
+        uses: actions/checkout@v4
+
       - name: Clone Original DNSTT
-        run: git clone https://github.com/google/dnstt.git .
+        run: |
+          git clone https://github.com/google/dnstt.git temp_dnstt
+          cp -r temp_dnstt/* .
+          rm -rf temp_dnstt
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -25,8 +32,10 @@ jobs:
 
       - name: Build Binaries
         run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o "dnstt-client-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-client
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -v -o "dnstt-server-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-server
+          export GOOS=${{ matrix.os }}
+          export GOARCH=${{ matrix.arch }}
+          go build -v -o "dnstt-client-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-client
+          go build -v -o "dnstt-server-${{ matrix.os }}-${{ matrix.arch }}" ./dnstt-server
 
       - name: Upload Results
         uses: actions/upload-artifact@v4
